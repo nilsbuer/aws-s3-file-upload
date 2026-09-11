@@ -77,105 +77,77 @@ Design rules:
 | `failed_files` | Text |  |
 
 
-### Web Service Integration — `ue-webservice`
-**Category:** Web Services / REST
-**Description:** Web Service Integration Universal Extension
-**Fields (38):**
+### UDMG File Transfer — `ue-mft-transfer`
+**Category:** File Transfer
+**Description:** UDMG File Transfer Universal Extension
+**Fields (28):**
 
 | Field name | Type | Choices / Notes |
 |------------|------|-----------------|
-| `protocol` | Choice | HTTP(S)/REST |
-| `http_version` | Choice | 1.1 |
-| `authorization_type` | Choice | Basic, Token, API Key, None, OAuth 2.0 |
+| `action` | Choice | GET, PUT, MGET, MPUT, LIST |
+| `protocol` | Choice | SFTP, HTTPS, HTTP, PeSIT, PeSIT-TLS |
+| `mft_server` | Text |  |
 | `credentials` | Credential |  |
-| `api_key` | Credential |  |
-| `access_token_url` | Text |  |
-| `grant_type` | Choice | Client Credentials, Password Credentials |
-| `scope` | Text |  |
-| `client_credentials` | Credential |  |
-| `resource_owner_credentials` | Credential |  |
-| `client_authentication` | Choice | Send Client Credentials in Body, Send as Basic Auth Header |
-| `oauth2_token` | Text |  |
-| `add_authorization_data_to` | Choice | Request Header, Request URL |
-| `authorization_header_prefix` | Text | Bearer |
-| `additional_credentials` | Credential |  |
-| `use_ssl` | Boolean | false |
-| `ssl_hostname_check` | Boolean | true |
-| `trusted_certificates_file` | Text |  |
-| `private_key_certificate` | Text |  |
-| `public_key_certificate` | Text |  |
-| `http_method` | Choice | GET, POST, PUT, PATCH, DELETE |
-| `timeout` | Float |  |
-| `url` | Text |  |
-| `url_query_parameters` | Array |  |
-| `http_headers` | Array |  |
-| `payload_type` | Choice | Raw, Form Data |
-| `payload_source` | Choice | Form, Script |
-| `payload_script` | Script |  |
-| `mime_type` | Choice | application/javascript , application/json, application/xml, text/html, text/plain, text/xml |
-| `other_value_for_mime_type` | Text |  |
-| `form_data` | Array |  |
-| `payload` | Text |  |
-| `proxies` | Text |  |
-| `result_body_medium` | Choice | --None--, STDOUT |
-| `process_exit_code_mapping` | Boolean | false |
-| `path_expression` | Text |  |
-| `exit_code_mapping` | Array |  |
-| `response_code` | Text |  |
+| `partner` | Choice |  |
+| `user` | Text |  |
+| `partner_account_dynamic` | Choice |  |
+| `use_dynamic_partner_account` | Boolean | false |
+| `file` | Text |  |
+| `output` | Text |  |
+| `rule` | Choice |  |
+| `polling_interval` | Integer | 5 |
+| `wait_for_completion` | Boolean | true |
+| `max_file_to_monitor` | Integer | 100 |
+| `transfer_date` | Text |  |
+| `transfer_id` | Text |  |
+| `status` | Text |  |
+| `start` | Text |  |
+| `stop` | Text |  |
+| `step` | Text |  |
+| `progress` | Integer |  |
+| `transfer_progress` | Text |  |
+| `error_code` | Text |  |
+| `task_number` | Text |  |
+| `error_msg` | Text |  |
+| `local_file` | Text |  |
+| `remote_file` | Text |  |
+| `transfer_uuid` | Text |  |
 
 
-### Kong AI Gateway — `ue-kong-ai-gateway`
-**Category:** AI / API Gateway
-**Description:** LLM chat and autonomous agentic MCP-tool automation via Kong AI Gateway.
-**Fields (47):**
+### Amazon Bedrock — `ue-aws-bedrock`
+**Category:** AI / LLM
+**Description:** Amazon Bedrock Universal Extension
+**Fields (28):**
 
 | Field name | Type | Choices / Notes |
 |------------|------|-----------------|
-| `action` | Choice | Chat, Agentic MCP, List MCP Tools |
-| `auth_method` | Choice | OAuth2 (Client Credentials), Kong API Key (key-auth) |
-| `credential` | Credential |  |
-| `api_key_header_name` | Text | apikey |
-| `kong_gateway_url` | Text |  |
-| `activate_dynamic_choices` | Boolean | false |
-| `activate_overrides` | Boolean | false |
-| `kong_admin_api_url` | Text |  |
-| `kong_admin_api_token` | Credential |  |
-| `llm_service` | Choice |  |
-| `model` | Choice |  |
-| `mcp_connections` | Choice |  |
-| `mcp_connections_override` | Text |  |
-| `allowed_tools` | Choice |  |
-| `allowed_tools_override` | Text |  |
-| `system_prompt_source` | Choice | Inline Text, UAC Script |
+| `action` | Choice | Ask AI (Converse API) |
+| `authentication_method` | Choice | AWS Access Key ID and Secret Access Key |
+| `aws_credentials` | Credential |  |
+| `aws_region` | Text |  |
+| `role_arn` | Text |  |
+| `model_deployment` | Choice |  |
+| `system_prompt_source` | Choice | Text Field, Prompt Library (UAC Script) |
 | `system_prompt_text` | Text | You are a helpful assistant. |
 | `system_prompt_script` | Script |  |
-| `user_prompt_source` | Choice | Inline Text, UAC Script |
-| `user_prompt_text` | Text |  |
-| `user_prompt_script` | Script |  |
-| `response_format_type` | Choice | Text, JSON (Prompt Described), JSON Schema (API Enforced) |
-| `response_format_schema` | Script |  |
+| `conversation_thread_source` | Choice | Text Field, Prompt Library (UAC Script) |
+| `conversation_thread_text` | Text | Can you summarize this: 
+{{ fetch_uac_variable('uac_var') }} |
+| `conversation_thread_script` | Script |  |
+| `response_format_type` | Choice | Text, JSON Schema Enforcement (Tool Use) |
+| `response_format_json_schema` | Script |  |
+| `save_options` | Choice | -- None --, Save Entire Conversation, Save Latest Response Only |
+| `save_source` | Choice | Local Path |
+| `save_local_path` | Text |  |
 | `advanced_options` | Boolean | false |
 | `temperature` | Float | 1.0 |
 | `top_p` | Float | 1.0 |
-| `frequency_penalty` | Float | 0.0 |
-| `presence_penalty` | Float | 0.0 |
 | `max_tokens` | Integer | 1000 |
-| `seed` | Integer |  |
-| `stop_sequences` | Text |  |
-| `max_turns` | Integer | 20 |
-| `poll_interval` | Integer | 5 |
-| `dry_run` | Boolean | false |
-| `save_options` | Choice | -- None --, Save Latest Response / Final Answer, Save Entire Conversation |
-| `save_destination` | Text |  |
-| `chat_stdout_options` | Choice | Latest Response Only, Entire Conversation |
-| `agentic_stdout_options` | Choice | Final Answer Only, Loop Progress + Final Answer |
-| `chat_output_options` | Choice | Token Usage and Metadata, Complete Conversation |
-| `agentic_output_options` | Choice | Token Usage and Metadata, Tool-Call Transcript |
-| `prompt_tokens` | Integer |  |
-| `completion_tokens` | Integer |  |
+| `stdout_output` | Choice | -- None --, Show Latest Response Only, Show Entire Conversation |
+| `extension_output` | Choice | Show Latest Response Only, Show Entire Conversation, Token Usage and Metadata |
+| `send_metrics` | Boolean | false |
+| `input_tokens` | Integer |  |
+| `output_tokens` | Integer |  |
 | `total_tokens` | Integer |  |
-| `finish_reason` | Text |  |
-| `turns_used` | Integer |  |
-| `tool_call_count` | Integer |  |
-| `tool_count` | Integer |  |
+| `stop_reason` | Text |  |
 
