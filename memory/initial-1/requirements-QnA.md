@@ -99,7 +99,7 @@ The requirements specify `boto3>=1.34,<2`. The lower bound (1.34, released Septe
 - **Rationale**: Boto3's strong backward compatibility history makes <2 a reasonable bound. More aggressive pinning (Options B/C) adds maintenance burden when security patches or fixes are released, which is typically not worth the stability gain for a well-maintained library. The MVP can always be revisited with tighter constraints in future iterations.
 - **Trade-offs**: Option A accepts the widest version range in exchange for minimal dependency maintenance. Options B and C reduce the risk of surprise behavior changes but require more active maintenance and may block important patches.
 - **Requirement Impact**: No change to requirements — this is a dependency resolution decision, not a functional change.
-- **User's Answer**: Option A
+- **User's Answer**: **Option A** — The constraint `boto3>=1.34,<2` provides the right balance. Boto3 maintains excellent backward compatibility, and specifying an upper bound on the major version is a standard Python practice.
 
 ---
 
@@ -118,7 +118,7 @@ The requirements state: "Use: `s3.get_paginator("list_objects_v2")` or repeated 
 - **Rationale**: Paginators reduce implementation complexity and risk of bugs in continuation-token handling. The paginator also naturally handles truncation and empty responses. For an MVP, this is the simpler path that remains fully functional.
 - **Trade-offs**: Option A delegates pagination details to boto3 (less visible, slightly harder to debug unusual pagination cases). Option B gives explicit control but requires more error handling and is more error-prone.
 - **Requirement Impact**: No change to requirements — this is an implementation pattern choice.
-- **User's Answer**: Option A
+- **User's Answer**: **Option A** — Use `s3.get_paginator("list_objects_v2")`. The paginator pattern is less code, more maintainable, and handles edge cases transparently.
 
 ---
 
@@ -138,7 +138,7 @@ The requirements state: "After upload, optionally call: `s3.head_object()`..." T
 - **Rationale**: Boto3's upload_file already validates the upload succeeded. Adding head_object doubles API call volume and latency for no practical benefit in the MVP. The requirement's use of "optionally" reflects that this is a nice-to-have, not essential. Keeping the MVP small, as stated in the requirements, suggests skipping it.
 - **Trade-offs**: Option A has minimal implementation cost and reduces API call volume. Option B adds extra assurance (useful for debugging) but increases cost and latency. Option C adds UI complexity (another field to manage).
 - **Requirement Impact**: No change to requirements — this aligns with the "keep the MVP small" principle already stated.
-- **User's Answer**: Option A
+- **User's Answer**: **Option A** — Do not implement head_object verification. The MVP scope and boto3's built-in integrity checks make this unnecessary.
 
 ---
 
@@ -160,7 +160,7 @@ This conditional needs clarification on what the actual output field structure s
 - **Rationale**: This aligns with the architect notes' Multi-Channel Output Pattern. Simple scalar fields are ideal for output fields; arrays belong in Extension Output JSON for downstream automation tasks. STDOUT provides immediate human visibility. This is the cleanest separation of concerns.
 - **Trade-offs**: Option A keeps output fields simple and STDOUT human-friendly, with full details in JSON for automation. Option B makes output fields more detailed but incomplete for large result sets. Option C avoids arrays but makes JSON parsing harder.
 - **Requirement Impact**: No functional change — this is a clarification on how to structure the specified "recommended machine-readable output."
-- **User's Answer**: Option A
+- **User's Answer**: **Option A** — Create three simple output fields (bucket_name, prefix, object_count) and return the object array in Extension Output JSON under the `result` object. STDOUT provides human-readable formatted output.
 
 ---
 
@@ -187,7 +187,7 @@ In production, these can occur briefly and resolve on retry.
 - **Rationale**: The requirements emphasize "keep the MVP small." Botocore already has built-in retry logic enabled by default (which will retry transient failures internally), so the extension doesn't need to add another layer. If users need more control, they can configure botocore via environment variables (AWS_RETRY_MODE). This keeps the MVP focused on functional scope.
 - **Trade-offs**: Option A keeps the MVP simple but relies on botocore's defaults (may be insufficient for demanding production use). Option B adds robustness but increases code complexity. Option C adds UI flexibility but introduces a new field to manage.
 - **Requirement Impact**: No functional change to the stated requirements — this clarifies the approach to unstated but common failure scenarios.
-- **User's Answer**: Option A
+- **User's Answer**: **Option A** — Do not implement automatic retries in the extension code. Rely on botocore's default built-in retry behavior, which is already enabled. This satisfies MVP requirements without adding complexity.
 
 ---
 
@@ -211,7 +211,7 @@ The requirements state "Never log either value" (AWS Access Key ID and Secret Ac
 - **Rationale**: The requirements are explicit: "Never log either value." The architect notes warn that UAC's masking relies on exact string matching, which can fail if credentials contain escape characters. The safest approach is to handle credentials securely in the extension code (e.g., use only when needed, never log, convert to string only for boto3 calls).
 - **Trade-offs**: Option A requires careful coding discipline to avoid credential leaks but is the most secure. Option B is simpler but relies on UAC's masking, which can fail with special characters. Option C adds redundant protection but increases complexity.
 - **Requirement Impact**: No change to requirements — this implements the stated "never log" principle securely.
-- **User's Answer**: Option A
+- **User's Answer**: **Option A** — Implement explicit credential redaction in the extension code. Never pass raw credentials to logging or print statements. Use f-strings or string concatenation only for non-sensitive values.
 
 ---
 
@@ -260,7 +260,7 @@ The requirements specify STDOUT format (human-readable text) and mention "recomm
 - **Rationale**: This pattern is recommended by the architect notes, provides clear separation between execution status and result data, and is consistent with other extensions. Downstream tasks can easily parse the result object.
 - **Trade-offs**: Option A is slightly more verbose but provides structure for automation. Option B is flatter but mixes execution metadata with business data. Option C is simplest but loses machine-processable output.
 - **Requirement Impact**: No change to functional requirements — this clarifies the output structure for machine consumption.
-- **User's Answer**: Option A
+- **User's Answer**: **Option A** — Use the architect notes' standard Extension Output JSON pattern with exit_code, status_description, metadata, and result object.
 
 ---
 
@@ -283,5 +283,5 @@ The requirements state: "Empty means list from bucket root." However, the field 
 - **Rationale**: S3 semantics support empty prefix meaning "no prefix filter." Option A aligns with this and is the simplest for users — they can either omit the field or leave it empty with the same result. No extra validation logic needed.
 - **Trade-offs**: Option A is permissive and simple. Option B enforces stricter input validation but may confuse users. Option C is equally permissive as A but adds extra logging.
 - **Requirement Impact**: No change to requirements — this clarifies handling of the optional prefix field.
-- **User's Answer**: Option A
+- **User's Answer**: **Option A** — Treat empty string, null, and whitespace-only as equivalent, all meaning "list from bucket root." Trim whitespace from non-empty prefix values.
 
