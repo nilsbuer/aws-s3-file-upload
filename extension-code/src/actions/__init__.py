@@ -1,13 +1,13 @@
 """Actions module - Business logic implementations."""
 
 from actions.output import ActionOutput
+from actions.list_files import ListFiles
+from actions.upload_file import UploadFile
 from manager import ExtensionManager
+
 extension_manager = ExtensionManager()
 
-# Import your action classes here
-# from actions.action_name import ActionName
-
-# Map action names to lambdas that instantiate the class and call execute()
 ACTION_MAPPER = {
-    # "action_name": lambda input_data: ActionName(input_data).execute(),
+    "List Files": lambda input_data: ListFiles(input_data).execute(),
+    "Upload File": lambda input_data: UploadFile(input_data).execute(),
 }
