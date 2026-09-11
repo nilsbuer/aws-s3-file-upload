@@ -52,3 +52,56 @@ class UnexpectedSystemError(ExecutionError):
     """Raised for unexpected system errors."""
     exit_code = 1
     message = "System Error"
+
+class AWSConnectionError(ExecutionError):
+    """Raised when connection to AWS S3 endpoint fails.
+
+    Covers network errors including endpoint unreachable, connection timeouts,
+    and read timeouts. Transient error (exit code 1).
+    """
+    exit_code = 1
+    message = "AWS Connection Error"
+
+class AWSAuthenticationError(ExecutionError):
+    """Raised when AWS authentication fails.
+
+    Covers invalid access keys, invalid secret keys, or missing credentials.
+    Non-transient user configuration error (exit code 1).
+    """
+    exit_code = 1
+    message = "AWS Authentication Error"
+
+class AWSAccessDeniedError(ExecutionError):
+    """Raised when user lacks required IAM permissions.
+
+    Covers AccessDenied errors from AWS, indicating insufficient s3:ListBucket
+    or s3:PutObject permissions. Non-transient user configuration error (exit code 1).
+    """
+    exit_code = 1
+    message = "AWS Access Denied"
+
+class AWSBucketNotFoundError(ExecutionError):
+    """Raised when S3 bucket does not exist or is not accessible.
+
+    Covers NoSuchBucket errors from AWS. Non-transient user configuration error (exit code 1).
+    """
+    exit_code = 1
+    message = "AWS Bucket Not Found"
+
+class FileValidationError(ExecutionError):
+    """Raised when source file validation fails for Upload File action.
+
+    Covers file not found, not a regular file, or permission denied errors.
+    Non-transient user input error (exit code 2).
+    """
+    exit_code = 2
+    message = "File Validation Error"
+
+class UnexpectedError(ExecutionError):
+    """Raised for unexpected system or extension errors.
+
+    Used for errors not caught by specific error handlers, such as bugs in
+    extension code. Transient error (exit code 1).
+    """
+    exit_code = 1
+    message = "Unexpected Error"
