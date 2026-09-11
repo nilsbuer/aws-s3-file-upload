@@ -17,13 +17,11 @@ class OutputFields:
     All output fields should use the Text wrapper type.
     """
 
-    # Define your progress tracking fields here using Text wrapper
-    # Example fields:
-    # status: Optional[Text] = None
-    # progress: Optional[Text] = None
-    # current_item: Optional[Text] = None
-    # items_processed: Optional[Text] = None
-    # last_processed_id: Optional[Text] = None
+    bucket_name: Optional[Text] = None
+    region: Optional[Text] = None
+    object_count: Optional[Text] = None
+    s3_uri: Optional[Text] = None
+    status_message: Optional[Text] = None
 
     def update(self, **fields):
         """Update fields and sync with UAC UI in real-time.
@@ -53,14 +51,9 @@ class OutputFields:
         return result
 
     def clear(self):
-        """Reset all fields to None.
-
-        Update this method to match your defined fields.
-        """
-        # Add your fields here
-        # self.status = None
-        # self.progress = None
-        # self.current_item = None
-        # self.items_processed = None
-        # self.last_processed_id = None
-        pass
+        """Reset all fields to None."""
+        self.bucket_name = None
+        self.region = None
+        self.object_count = None
+        self.s3_uri = None
+        self.status_message = None

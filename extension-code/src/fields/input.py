@@ -36,23 +36,14 @@ class InputFields:
     - Only validate fields that have values (check for None first)
     """
 
-    # User-defined fields - ALWAYS Optional, even if required in template.json
     action: Optional[SingleChoice] = None
-
-    # Define your extension's fields here using wrapper types
-    # Example fields:
-    # resource_name: Optional[Text] = None
-    # timeout: Optional[Integer] = None
-    # api_credential: Optional[Credential] = None
-    # tags: Optional[MultiChoice] = None
-
-    # Script fields - use Script wrapper (UAC returns temp file path)
-    # sql_query: Optional[Script] = None
-    # json_payload: Optional[Script] = None
-
-    # Control fields - use MultiChoice for multi-select options
-    # stdout_options: Optional[MultiChoice] = None
-    # output_options: Optional[MultiChoice] = None
+    aws_credential: Optional[Credential] = None
+    aws_region: Optional[Text] = None
+    bucket_name: Optional[Text] = None
+    prefix: Optional[Text] = None
+    max_objects: Optional[Integer] = None
+    source_file: Optional[Text] = None
+    object_key: Optional[Text] = None
 
     # Previous run output (auto-populated for re-runs)
     previous_output: Optional[OutputFields] = None
@@ -227,111 +218,94 @@ class InputFields:
         if self._skip_validation:
             return
 
-        # Call validation methods
         self._validate_action()
-        # Add your validation methods here
-        # self._validate_resource_name()
-        # self._validate_timeout()
+        self._validate_aws_credential()
+        self._validate_aws_region()
+        self._validate_bucket_name()
+        self._validate_prefix()
+        self._validate_max_objects()
+        self._validate_source_file()
+        self._validate_object_key()
 
-        # Raise once if errors collected
         if extension_manager.has_errors():
             raise DataValidationError(
                 f"Validation failed with {extension_manager.error_count()} error(s)"
             )
 
     def _validate_action(self):
-        """Validate action field (SingleChoice wrapper).
-
-        Only validate fields with values - check for None first.
-        """
-        # ALWAYS check for None first - only validate if field has a value
+        """Validate action field (SingleChoice wrapper)."""
         if self.action is not None:
-            valid_actions = ["create", "delete", "update", "list"]  # Define your actions
-            # Access SingleChoice value via .value property
+            valid_actions = ["List Files", "Upload File"]
             if self.action.value not in valid_actions:
                 exc = DataValidationError(
                     f"Invalid action '{self.action.value}'. Valid actions: {', '.join(valid_actions)}"
                 )
                 extension_manager.add_error(exc, field="action", value=self.action.value)
 
-    # Add your validation methods here
-    # Always check for None first - only validate fields with values
-    #
-    # def _validate_resource_name(self):
-    #     """Validate resource_name field (Text wrapper)."""
-    #     # Always check for None first
-    #     if self.resource_name is not None:
-    #         # Access Text value via .value property
-    #         if len(self.resource_name.value) == 0 or len(self.resource_name.value) > 255:
-    #             exc = DataValidationError("resource_name must be 1-255 characters")
-    #             extension_manager.add_error(
-    #                 exc, field="resource_name", value=self.resource_name.value
-    #             )
-    #
-    # def _validate_timeout(self):
-    #     """Validate timeout field (Integer wrapper)."""
-    #     # Always check for None first - only validate if field has a value
-    #     if self.timeout is not None:
-    #         # Access Integer value via .value property
-    #         if self.timeout.value < 1:
-    #             exc = DataValidationError("timeout must be >= 1")
-    #             extension_manager.add_error(exc, field="timeout", value=self.timeout.value)
-    #
-    # def _validate_sql_query(self):
-    #     """Validate sql_query script field (Script wrapper)."""
-    #     # Always check for None first - only validate if field has a value
-    #     if self.sql_query is not None:
-    #         # Validate file exists using Script wrapper method
-    #         if not self.sql_query.exists():
-    #             exc = DataValidationError("SQL query file not found")
-    #             extension_manager.add_error(exc, field="sql_query")
-    #             return
-    #
-    #         # Read content using Script wrapper method
-    #         try:
-    #             content = self.sql_query.read()
-    #             if not content.strip():
-    #                 exc = DataValidationError("SQL query cannot be empty")
-    #                 extension_manager.add_error(exc, field="sql_query")
-    #         except Exception as e:
-    #             exc = DataValidationError(f"Failed to read SQL query: {str(e)}")
-    #             extension_manager.add_error(exc, field="sql_query")
-    #
-    # def _validate_headers(self):
-    #     """Validate headers array field (Array wrapper).
-    #
-    #     IMPORTANT: UAC sends arrays in FLATTENED format!
-    #     Task definition has: {"name": "X", "value": "Y"}
-    #     UAC transforms to: {"X": "Y"}
-    #
-    #     See Array class documentation in fields/types.py for details.
-    #     """
-    #     # Always check for None first - only validate if field has a value
-    #     if self.headers is not None:
-    #         # Access Array pairs (list of flattened dicts)
-    #         header_list = self.headers.pairs
-    #
-    #         for idx, header in enumerate(header_list):
-    #             # Check if dictionary is empty
-    #             if not header:
-    #                 exc = DataValidationError(f"Header at index {idx} is empty")
-    #                 extension_manager.add_error(exc, field="headers", index=idx)
-    #                 continue
-    #
-    #             # Extract key from flattened format: {"X": "Y"}
-    #             # Do NOT check for "name" property - it doesn't exist!
-    #             header_name = next(iter(header.keys()), "")
-    #             if not header_name:
-    #                 exc = DataValidationError(
-    #                     f"Header at index {idx} must have a non-empty name"
-    #                 )
-    #                 extension_manager.add_error(exc, field="headers", index=idx)
-    #                 continue
-    #
-    #             # Optional: validate header value
-    #             header_value = header[header_name]
-    #             if header_value is None:
-    #                 exc = DataValidationError(
-    #                     f"Header '{header_name}' at index {idx} has null value"
-    #                 )
-    #                 extension_manager.add_error(exc, field="headers", index=idx)
+    def _validate_aws_credential(self):
+        """Validate aws_credential field (Credential wrapper)."""
+        if self.aws_credential is not None:
+            if not self.aws_credential.user or not self.aws_credential.password:
+                exc = DataValidationError(
+                    "AWS credentials must include Access Key ID (user) and Secret Access Key (password)"
+                )
+                extension_manager.add_error(exc, field="aws_credential")
+
+    def _validate_aws_region(self):
+        """Validate aws_region field (Text wrapper)."""
+        if self.aws_region is not None:
+            region_value = self.aws_region.value.strip()
+            if not region_value:
+                exc = DataValidationError("AWS region cannot be empty")
+                extension_manager.add_error(exc, field="aws_region")
+
+    def _validate_bucket_name(self):
+        """Validate bucket_name field (Text wrapper)."""
+        if self.bucket_name is not None:
+            bucket_value = self.bucket_name.value.strip()
+            if not bucket_value:
+                exc = DataValidationError("Bucket name cannot be empty")
+                extension_manager.add_error(exc, field="bucket_name")
+
+    def _validate_prefix(self):
+        """Validate prefix field (Text wrapper).
+
+        Prefix is optional. Whitespace-only values are treated as empty.
+        """
+        if self.prefix is not None and self.prefix.value:
+            prefix_value = self.prefix.value.strip()
+            if not prefix_value:
+                self.prefix = Text(value="")
+
+    def _validate_max_objects(self):
+        """Validate max_objects field (Integer wrapper).
+
+        Optional field, must be 1-1000 if provided.
+        """
+        if self.max_objects is not None:
+            if self.max_objects.value < 1 or self.max_objects.value > 1000:
+                exc = DataValidationError(
+                    f"max_objects must be between 1 and 1000, got {self.max_objects.value}"
+                )
+                extension_manager.add_error(exc, field="max_objects", value=self.max_objects.value)
+
+    def _validate_source_file(self):
+        """Validate source_file field (Text wrapper).
+
+        Required only when action is "Upload File".
+        """
+        if self.action and self.action.value == "Upload File":
+            if self.source_file is None or not self.source_file.value.strip():
+                exc = DataValidationError("source_file is required for Upload File action")
+                extension_manager.add_error(exc, field="source_file")
+
+    def _validate_object_key(self):
+        """Validate object_key field (Text wrapper).
+
+        Required only when action is "Upload File".
+        """
+        if self.action and self.action.value == "Upload File":
+            if self.object_key is None or not self.object_key.value.strip():
+                exc = DataValidationError("object_key is required for Upload File action")
+                extension_manager.add_error(exc, field="object_key")
+
